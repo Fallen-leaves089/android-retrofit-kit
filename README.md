@@ -5,7 +5,7 @@
 
 Android Retrofit 工具包 | 加密 Token | 价格精度保护 | 动态 URL
 
-MIT License. Copyright (c) 2024 labui09.
+MIT License. Copyright (c) 2024 Fallen-leaves089.
 
 ---
 
