@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "io.github.labui09.retrofitkit"
+    namespace = "io.github.fallenleaves089.retrofitkit"
     compileSdk = 34
 
     defaultConfig {

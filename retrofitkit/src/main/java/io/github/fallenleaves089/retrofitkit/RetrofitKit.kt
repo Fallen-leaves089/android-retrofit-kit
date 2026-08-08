@@ -1,4 +1,4 @@
-package io.github.labui09.retrofitkit
+package io.github.fallenleaves089.retrofitkit
 
 import android.content.Context
 import com.google.gson.GsonBuilder

@@ -1,4 +1,4 @@
-package io.github.labui09.retrofitkit
+package io.github.fallenleaves089.retrofitkit
 
 import com.google.gson.TypeAdapter
 import com.google.gson.stream.JsonReader

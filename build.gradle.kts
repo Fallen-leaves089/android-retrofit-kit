@@ -3,4 +3,4 @@ plugins {
     id("org.jetbrains.kotlin.android") version "1.9.22" apply false
 }
 
-group = "io.github.labui09"
+group = "io.github.fallenleaves089"
