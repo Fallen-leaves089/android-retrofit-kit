@@ -2,6 +2,7 @@
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-Fallen-leaves089%2Fandroid--retrofit--kit-lightgrey?logo=github)](https://github.com/Fallen-leaves089/android-retrofit-kit)
+[![Build](https://img.shields.io/github/actions/workflow/status/Fallen-leaves089/android-retrofit-kit/ci.yml?branch=main&logo=github)](https://github.com/Fallen-leaves089/android-retrofit-kit/actions)
 
 Android Retrofit 工具包 | 加密 Token | 价格精度保护 | 动态 URL
 
@@ -22,6 +23,28 @@ MIT License. Copyright (c) 2024 Fallen-leaves089.
 ---
 
 ## 依赖坐标
+
+### 方式一：JitPack（仓库打 tag 后可用）
+
+在 `settings.gradle.kts` 的 `dependencyResolutionManagement` 中添加 JitPack 仓库：
+
+```kotlin
+dependencyResolutionManagement {
+    repositories {
+        maven("https://jitpack.io")
+    }
+}
+```
+
+在模块的 `build.gradle.kts` 中添加依赖（版本号对应 GitHub tag）：
+
+```kotlin
+implementation("com.github.Fallen-leaves089:android-retrofit-kit:<tag>")
+```
+
+> 首次使用 JitPack 时会自动远程构建，通常需要 1-2 分钟。
+
+### 方式二：本地 module 引入（发布前推荐）
 
 本库尚未发布到 Maven Central，可 clone 后作为本地 module 引入：
 
