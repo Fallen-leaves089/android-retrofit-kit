@@ -41,7 +41,7 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
 
     // AndroidX Security (EncryptedSharedPreferences)
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation("androidx.security:security-crypto:1.1.0")
 
     // AndroidX Core
     implementation("androidx.core:core-ktx:1.10.1")
