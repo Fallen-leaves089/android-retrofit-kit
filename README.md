@@ -1,12 +1,12 @@
 # android-retrofit-kit
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![GitHub](https://img.shields.io/badge/GitHub-Fallen-leaves089%2Fandroid--retrofit--kit-lightgrey?logo=github)](https://github.com/Fallen-leaves089/android-retrofit-kit)
-[![Build](https://img.shields.io/github/actions/workflow/status/Fallen-leaves089/android-retrofit-kit/ci.yml?branch=main&logo=github)](https://github.com/Fallen-leaves089/android-retrofit-kit/actions)
+[![GitHub](https://img.shields.io/badge/GitHub-fallen-leaves089%2Fandroid--retrofit--kit-lightgrey?logo=github)](https://github.com/fallen-leaves089/android-retrofit-kit)
+[![Build](https://img.shields.io/github/actions/workflow/status/fallen-leaves089/android-retrofit-kit/ci.yml?branch=main&logo=github)](https://github.com/fallen-leaves089/android-retrofit-kit/actions)
 
 Android Retrofit 工具包 | 加密 Token | 价格精度保护 | 动态 URL
 
-MIT License. Copyright (c) 2024 Fallen-leaves089.
+MIT License. Copyright (c) 2024 fallen-leaves089.
 
 ---
 
@@ -39,7 +39,7 @@ dependencyResolutionManagement {
 在模块的 `build.gradle.kts` 中添加依赖（版本号对应 GitHub tag）：
 
 ```kotlin
-implementation("com.github.Fallen-leaves089:android-retrofit-kit:<tag>")
+implementation("com.github.fallen-leaves089:android-retrofit-kit:<tag>")
 ```
 
 > 首次使用 JitPack 时会自动远程构建，通常需要 1-2 分钟。
