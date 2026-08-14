@@ -4,29 +4,31 @@
 [![GitHub](https://img.shields.io/badge/GitHub-fallen-leaves089%2Fandroid--retrofit--kit-lightgrey?logo=github)](https://github.com/fallen-leaves089/android-retrofit-kit)
 [![Build](https://img.shields.io/github/actions/workflow/status/fallen-leaves089/android-retrofit-kit/ci.yml?branch=main&logo=github)](https://github.com/fallen-leaves089/android-retrofit-kit/actions)
 
-Android Retrofit 工具包 | 加密 Token | 价格精度保护 | 动态 URL
+Android Retrofit toolkit | Encrypted token storage | BigDecimal precision protection | Dynamic URLs
 
 MIT License. Copyright (c) 2024 fallen-leaves089.
 
----
-
-## 功能
-
-- **Token 自动注入**：每次请求自动拼接 `Authorization: Bearer <token>` 头
-- **401 全局拦截**：收到 401 时自动触发 `onTokenExpired` 回调
-- **BigDecimal 精度保护**：`PriceTypeAdapter` 防止 Gson 将金额字段解析为 double 导致精度丢失
-- **加密 Token 存储**：`TokenManager` 基于 AndroidX EncryptedSharedPreferences，密钥托管到 Android Keystore
-- **可自定义错误消息**：`NetworkErrorDecoder` 接口，用户实现自定义错误提示
-- **Cookie 自动管理**：内置 `SimpleCookieJar`
-- **日志拦截器**：可开关的 OkHttp 日志输出
+[中文说明](README.zh-CN.md)
 
 ---
 
-## 依赖坐标
+## Features
 
-### 方式一：JitPack（仓库打 tag 后可用）
+- **Automatic token injection**: adds `Authorization: Bearer <token>` to every request.
+- **Global 401 interception**: triggers the `onTokenExpired` callback when a 401 response is received.
+- **BigDecimal precision protection**: `PriceTypeAdapter` prevents Gson from parsing monetary fields as `double` and losing precision.
+- **Encrypted token storage**: `TokenManager` uses AndroidX EncryptedSharedPreferences and delegates key management to the Android Keystore.
+- **Customizable error messages**: the `NetworkErrorDecoder` interface lets you provide your own error message handling.
+- **Automatic cookie management**: includes `SimpleCookieJar`.
+- **Logging interceptor**: optional OkHttp logging output.
 
-在 `settings.gradle.kts` 的 `dependencyResolutionManagement` 中添加 JitPack 仓库：
+---
+
+## Dependency coordinates
+
+### Option 1: JitPack (available after tagging the repository)
+
+Add the JitPack repository to `dependencyResolutionManagement` in `settings.gradle.kts`:
 
 ```kotlin
 dependencyResolutionManagement {
@@ -36,17 +38,17 @@ dependencyResolutionManagement {
 }
 ```
 
-在模块的 `build.gradle.kts` 中添加依赖（版本号对应 GitHub tag）：
+Add the dependency in the module-level `build.gradle.kts` (the version matches the GitHub tag):
 
 ```kotlin
 implementation("com.github.fallen-leaves089:android-retrofit-kit:<tag>")
 ```
 
-> 首次使用 JitPack 时会自动远程构建，通常需要 1-2 分钟。
+> The first JitPack build runs remotely and usually takes 1-2 minutes.
 
-### 方式二：本地 module 引入（发布前推荐）
+### Option 2: local module (recommended before publishing)
 
-本库尚未发布到 Maven Central，可 clone 后作为本地 module 引入：
+This library has not been published to Maven Central yet. Clone it and include it as a local module:
 
 ```gradle
 // settings.gradle.kts
@@ -61,25 +63,25 @@ dependencies {
 
 ---
 
-## 快速开始
+## Quick start
 
-### 1. 初始化（Application.onCreate）
+### 1. Initialize in `Application.onCreate`
 
 ```kotlin
 class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         
-        // 1. 初始化 Token 加密存储
+        // 1. Initialize encrypted token storage
         TokenManager.init(this)
         
-        // 2. 初始化网络客户端
+        // 2. Initialize the network client
         RetrofitKit.init(
             context = this,
             baseUrl = "https://api.example.com/",
             tokenProvider = { TokenManager.getToken() },
             onTokenExpired = { context ->
-                // 跳转登录页
+                // Navigate to the login screen
                 TokenManager.clearToken()
                 context.startActivity(Intent(context, LoginActivity::class.java))
             },
@@ -90,10 +92,10 @@ class MyApplication : Application() {
                     isNetworkAvailable: Boolean
                 ): String {
                     return when (response?.code()) {
-                        500 -> "服务器错误，请稍后重试"
-                        404 -> "请求的资源不存在"
-                        403 -> "没有访问权限"
-                        else -> if (!isNetworkAvailable) "网络不可用" else "请求失败"
+                        500 -> "Server error, please try again later"
+                        404 -> "The requested resource does not exist"
+                        403 -> "Access denied"
+                        else -> if (!isNetworkAvailable) "Network unavailable" else "Request failed"
                     }
                 }
             },
@@ -103,7 +105,7 @@ class MyApplication : Application() {
 }
 ```
 
-### 2. 定义 API 接口
+### 2. Define an API interface
 
 ```kotlin
 interface ApiService {
@@ -115,23 +117,23 @@ interface ApiService {
 }
 ```
 
-### 3. 发起网络请求
+### 3. Make a network request
 
 ```kotlin
-// 创建 Service 实例
+// Create a service instance
 val apiService = RetrofitKit.create(ApiService::class.java)
 
-// 在 ViewModel 中使用
+// Use it from a ViewModel
 viewModelScope.launch(Dispatchers.IO) {
     try {
         val response = apiService.getProfile()
         if (response.isSuccessful) {
-            // 处理成功
+            // Handle success
         } else {
             val errorMsg = RetrofitKit.getNetworkErrorMessage(
                 context, response.raw(), isNetworkAvailable
             )
-            // 显示错误
+            // Show the error
         }
     } catch (e: Exception) {
         val errorMsg = RetrofitKit.getNetworkErrorMessage(
@@ -141,10 +143,10 @@ viewModelScope.launch(Dispatchers.IO) {
 }
 ```
 
-### 4. 登录后保存 Token
+### 4. Save the token after login
 
 ```kotlin
-// 登录成功后
+// After a successful login
 val token = loginResponse.data.token
 TokenManager.saveToken(token)
 TokenManager.saveUserId(userId)
@@ -152,47 +154,47 @@ TokenManager.saveUserId(userId)
 
 ---
 
-## 配置项
+## Configuration
 
-| 参数 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| `baseUrl` | String | 必填 | API 根地址 |
-| `tokenProvider` | `(() -> String?)?` | null | Token 提供者回调 |
-| `onTokenExpired` | `((Context) -> Unit)?` | null | 401 时的回调 |
-| `errorDecoder` | `NetworkErrorDecoder?` | null | 错误消息解码器 |
-| `connectTimeout` | Long | 15 | 连接超时（秒） |
-| `readTimeout` | Long | 15 | 读取超时（秒） |
-| `enableLogging` | Boolean | false | 是否启用 OkHttp 日志 |
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `baseUrl` | String | required | API base URL |
+| `tokenProvider` | `(() -> String?)?` | null | Token provider callback |
+| `onTokenExpired` | `((Context) -> Unit)?` | null | Callback invoked on 401 |
+| `errorDecoder` | `NetworkErrorDecoder?` | null | Error message decoder |
+| `connectTimeout` | Long | 15 | Connection timeout in seconds |
+| `readTimeout` | Long | 15 | Read timeout in seconds |
+| `enableLogging` | Boolean | false | Whether to enable OkHttp logging |
 
 ---
 
-## 核心 API
+## Core API
 
 ### RetrofitKit
 
-| 方法 | 说明 |
-|------|------|
-| `init(...)` | 初始化网络客户端 |
-| `reinitialize(...)` | 重新初始化（切换 baseUrl 等） |
-| `create(Class<T>)` | 创建 API Service 实例 |
-| `getNetworkErrorMessage(...)` | 根据 Response 获取错误消息 |
-| `getWebSocketUrl(baseUrl, path)` | 获取 WebSocket URL |
+| Method | Description |
+|--------|-------------|
+| `init(...)` | Initializes the network client |
+| `reinitialize(...)` | Reinitializes the client, for example when switching `baseUrl` |
+| `create(Class<T>)` | Creates an API service instance |
+| `getNetworkErrorMessage(...)` | Gets an error message from a response |
+| `getWebSocketUrl(baseUrl, path)` | Gets a WebSocket URL |
 
 ### TokenManager
 
-| 方法 | 说明 |
-|------|------|
-| `init(context)` | 初始化加密存储 |
-| `saveToken(token)` | 保存 JWT Token |
-| `getToken()` | 读取 Token |
-| `saveRefreshToken(token)` | 保存 Refresh Token |
-| `getRefreshToken()` | 读取 Refresh Token |
-| `saveUserId(userId)` | 保存用户 ID |
-| `getUserId()` | 读取用户 ID |
-| `clearToken()` | 清除所有 Token |
-| `isLoggedIn()` | 是否已登录 |
+| Method | Description |
+|--------|-------------|
+| `init(context)` | Initializes encrypted storage |
+| `saveToken(token)` | Saves a JWT token |
+| `getToken()` | Reads the token |
+| `saveRefreshToken(token)` | Saves a refresh token |
+| `getRefreshToken()` | Reads the refresh token |
+| `saveUserId(userId)` | Saves the user ID |
+| `getUserId()` | Reads the user ID |
+| `clearToken()` | Clears all tokens |
+| `isLoggedIn()` | Returns whether the user is logged in |
 
-### NetworkErrorDecoder（接口）
+### NetworkErrorDecoder (interface)
 
 ```kotlin
 interface NetworkErrorDecoder {
@@ -206,14 +208,14 @@ interface NetworkErrorDecoder {
 
 ### PriceTypeAdapter
 
-Gson 的 `TypeAdapter<BigDecimal>`，自动注册到 `RetrofitKit` 内部。确保 JSON 中的金额字段以字符串精度解析，不会出现 `19.99` 变成 `19.989999` 的问题。
+A Gson `TypeAdapter<BigDecimal>` that is automatically registered inside `RetrofitKit`. It ensures monetary fields in JSON are parsed as string-precision decimals, avoiding issues such as `19.99` becoming `19.989999`.
 
 ---
 
-## 依赖版本
+## Dependency versions
 
-| 库 | 版本 |
-|----|------|
+| Library | Version |
+|---------|---------|
 | Retrofit | 2.9.0 |
 | OkHttp | 4.12.0 |
 | Gson | 2.10.1 |
@@ -224,18 +226,18 @@ Gson 的 `TypeAdapter<BigDecimal>`，自动注册到 `RetrofitKit` 内部。确�
 
 ---
 
-## 架构说明
+## Architecture
 
 ```
 android-retrofit-kit
-├── RetrofitKit.kt          -- 主入口：初始化 + API 创建 + 错误处理 + WebSocket URL
-├── PriceTypeAdapter.kt     -- Gson TypeAdapter：BigDecimal 精度保护
-├── TokenManager.kt         -- 加密 Token 存储（EncryptedSharedPreferences）
-└── NetworkErrorDecoder.kt  -- 接口：自定义错误消息解码
+├── RetrofitKit.kt          -- Main entry point: initialization + API creation + error handling + WebSocket URL
+├── PriceTypeAdapter.kt     -- Gson TypeAdapter: BigDecimal precision protection
+├── TokenManager.kt         -- Encrypted token storage (EncryptedSharedPreferences)
+└── NetworkErrorDecoder.kt  -- Interface: custom error message decoding
 ```
 
 ---
 
-## GitHub About 建议
+## GitHub About
 
-`Android Retrofit 工具包 | 加密 Token | 价格精度保护 | 动态 URL`
+`Android Retrofit toolkit | Encrypted token storage | BigDecimal precision protection | Dynamic URLs`

@@ -3,6 +3,8 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+description = "Android Retrofit toolkit: encrypted token storage, BigDecimal precision protection, and dynamic URLs"
+
 android {
     namespace = "io.github.fallenleaves089.retrofitkit"
     compileSdk = 34
