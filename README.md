@@ -38,10 +38,10 @@ dependencyResolutionManagement {
 }
 ```
 
-Add the dependency in the module-level `build.gradle.kts` (the version matches the GitHub tag):
+Add the dependency in the module-level `build.gradle.kts` (the version matches the Git tag):
 
 ```kotlin
-implementation("com.github.fallen-leaves089:android-retrofit-kit:<tag>")
+implementation("com.github.fallen-leaves089:android-retrofit-kit:1.0.0")
 ```
 
 > The first JitPack build runs remotely and usually takes 1-2 minutes.
@@ -218,8 +218,8 @@ A Gson `TypeAdapter<BigDecimal>` that is automatically registered inside `Retrof
 |---------|---------|
 | Retrofit | 2.9.0 |
 | OkHttp | 4.12.0 |
-| Gson | 2.10.1 |
-| AndroidX Security | 1.1.0-alpha06 |
+| Gson | 2.14.0 |
+| AndroidX Security | 1.1.0 |
 | minSdk | 24 |
 | targetSdk | 34 |
 | compileSdk | 34 |
@@ -231,10 +231,40 @@ A Gson `TypeAdapter<BigDecimal>` that is automatically registered inside `Retrof
 ```
 android-retrofit-kit
 ├── RetrofitKit.kt          -- Main entry point: initialization + API creation + error handling + WebSocket URL
+├── RetrofitKitInterceptors.kt -- Authorization and 401 interceptors
 ├── PriceTypeAdapter.kt     -- Gson TypeAdapter: BigDecimal precision protection
 ├── TokenManager.kt         -- Encrypted token storage (EncryptedSharedPreferences)
 └── NetworkErrorDecoder.kt  -- Interface: custom error message decoding
 ```
+
+---
+
+## Tests
+
+```bash
+./gradlew --no-daemon :retrofitkit:testDebugUnitTest
+```
+
+Covers `PriceTypeAdapter`, WebSocket URL conversion, authorization header injection, 401 handling, and `TokenManager` persistence.
+
+---
+
+## Releasing
+
+JitPack builds a release automatically from a Git tag.
+
+```bash
+git tag 1.0.0
+git push origin 1.0.0
+```
+
+Then use:
+
+```text
+https://jitpack.io/#fallen-leaves089/android-retrofit-kit/1.0.0
+```
+
+Maven Central publishing requires OSSRH credentials, signed artifacts, and source/javadoc jars.
 
 ---
 

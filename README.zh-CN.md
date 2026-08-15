@@ -36,10 +36,10 @@ dependencyResolutionManagement {
 }
 ```
 
-在模块的 `build.gradle.kts` 中添加依赖（版本号对应 GitHub tag）：
+在模块的 `build.gradle.kts` 中添加依赖（版本号对应 Git tag）：
 
 ```kotlin
-implementation("com.github.fallen-leaves089:android-retrofit-kit:<tag>")
+implementation("com.github.fallen-leaves089:android-retrofit-kit:1.0.0")
 ```
 
 > 首次使用 JitPack 时会自动远程构建，通常需要 1-2 分钟。
@@ -216,8 +216,8 @@ Gson 的 `TypeAdapter<BigDecimal>`，自动注册到 `RetrofitKit` 内部。确�
 |----|------|
 | Retrofit | 2.9.0 |
 | OkHttp | 4.12.0 |
-| Gson | 2.10.1 |
-| AndroidX Security | 1.1.0-alpha06 |
+| Gson | 2.14.0 |
+| AndroidX Security | 1.1.0 |
 | minSdk | 24 |
 | targetSdk | 34 |
 | compileSdk | 34 |
@@ -229,10 +229,40 @@ Gson 的 `TypeAdapter<BigDecimal>`，自动注册到 `RetrofitKit` 内部。确�
 ```
 android-retrofit-kit
 ├── RetrofitKit.kt          -- 主入口：初始化 + API 创建 + 错误处理 + WebSocket URL
+├── RetrofitKitInterceptors.kt -- 鉴权拦截器与 401 拦截器
 ├── PriceTypeAdapter.kt     -- Gson TypeAdapter：BigDecimal 精度保护
 ├── TokenManager.kt         -- 加密 Token 存储（EncryptedSharedPreferences）
 └── NetworkErrorDecoder.kt  -- 接口：自定义错误消息解码
 ```
+
+---
+
+## 测试
+
+```bash
+./gradlew --no-daemon :retrofitkit:testDebugUnitTest
+```
+
+覆盖 `PriceTypeAdapter`、WebSocket URL 转换、鉴权头注入、401 处理以及 `TokenManager` 持久化。
+
+---
+
+## 发布
+
+JitPack 会根据 Git tag 自动构建发布。
+
+```bash
+git tag 1.0.0
+git push origin 1.0.0
+```
+
+随后可使用：
+
+```text
+https://jitpack.io/#fallen-leaves089/android-retrofit-kit/1.0.0
+```
+
+发布到 Maven Central 需要 OSSRH 凭据、签名制品以及 source/javadoc jar。
 
 ---
 

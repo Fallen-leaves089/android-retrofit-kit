@@ -58,6 +58,20 @@ object TokenManager {
     }
 
     /**
+     * 仅供本地单元测试使用：注入一个 SharedPreferences 假实现，避免依赖 Android Keystore。
+     */
+    internal fun overrideSharedPreferencesForTesting(prefs: SharedPreferences) {
+        this.prefs = prefs
+    }
+
+    /**
+     * 仅供本地单元测试使用：清空单例状态。
+     */
+    internal fun resetForTesting() {
+        prefs = null
+    }
+
+    /**
      * 保存 JWT Token。
      */
     fun saveToken(token: String) {

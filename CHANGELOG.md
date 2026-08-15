@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `SECURITY.md` security policy
 - `CODE_OF_CONDUCT.md` contributor covenant
 - CI runs unit tests alongside `assembleDebug`
+- Local unit tests for `PriceTypeAdapter`, WebSocket URL conversion, token injection, 401 interception, and `TokenManager`
+- JitPack publishing instructions and `1.0.0` release example
+
+### Changed
+
+- Extracted authorization and 401 interceptors into `RetrofitKitInterceptors.kt` for testability
+- Blank tokens no longer produce an `Authorization: Bearer   ` header
 
 ## [1.0.0] - 2024
 

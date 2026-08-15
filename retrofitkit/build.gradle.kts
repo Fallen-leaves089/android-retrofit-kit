@@ -47,4 +47,9 @@ dependencies {
 
     // AndroidX Core
     implementation("androidx.core:core-ktx:1.10.1")
+
+    // Local unit tests
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+    testImplementation("org.mockito:mockito-core:5.10.0")
 }

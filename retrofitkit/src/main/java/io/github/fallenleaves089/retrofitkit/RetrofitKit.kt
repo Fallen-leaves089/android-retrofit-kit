@@ -74,28 +74,10 @@ object RetrofitKit {
             .cookieJar(SimpleCookieJar())
 
         // 鉴权拦截器：自动注入 Authorization 头
-        okHttpBuilder.addInterceptor { chain ->
-            val originalRequest = chain.request()
-            val token = tokenProvider?.invoke()
-            val newRequest = if (!token.isNullOrEmpty()) {
-                originalRequest.newBuilder()
-                    .header("Authorization", "Bearer $token")
-                    .build()
-            } else {
-                originalRequest
-            }
-            chain.proceed(newRequest)
-        }
+        okHttpBuilder.addInterceptor(AuthHeaderInterceptor(tokenProvider))
 
         // 响应拦截器：检测 401
-        okHttpBuilder.addInterceptor { chain ->
-            val request = chain.request()
-            val response = chain.proceed(request)
-            if (response.code == 401) {
-                onTokenExpired?.invoke(context)
-            }
-            response
-        }
+        okHttpBuilder.addInterceptor(UnauthorizedInterceptor(context, onTokenExpired))
 
         // 日志拦截器
         if (enableLogging) {
