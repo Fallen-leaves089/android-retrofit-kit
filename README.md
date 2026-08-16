@@ -1,7 +1,6 @@
 # android-retrofit-kit
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![GitHub](https://img.shields.io/badge/GitHub-fallen-leaves089%2Fandroid--retrofit--kit-lightgrey?logo=github)](https://github.com/fallen-leaves089/android-retrofit-kit)
 [![Build](https://img.shields.io/github/actions/workflow/status/fallen-leaves089/android-retrofit-kit/ci.yml?branch=main&logo=github)](https://github.com/fallen-leaves089/android-retrofit-kit/actions)
 
 Android Retrofit toolkit | Encrypted token storage | BigDecimal precision protection | Dynamic URLs
