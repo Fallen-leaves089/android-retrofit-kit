@@ -46,7 +46,7 @@ dependencies {
     implementation("androidx.security:security-crypto:1.1.0")
 
     // AndroidX Core
-    implementation("androidx.core:core-ktx:1.10.1")
+    implementation("androidx.core:core-ktx:1.19.0")
 
     // Local unit tests
     testImplementation("junit:junit:4.13.2")
