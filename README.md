@@ -9,6 +9,23 @@ MIT License. Copyright (c) 2024 fallen-leaves089.
 
 [中文说明](README.zh-CN.md)
 
+## 30-second overview
+
+- **Problem solved:** centralizes the repetitive Retrofit/OkHttp plumbing: bearer tokens, 401 handling, encrypted token storage, and monetary precision.
+- **What you get:** `RetrofitKit`, `TokenManager`, `PriceTypeAdapter`, a 401 interceptor, cookie handling, and a pluggable error decoder.
+- **Use it when:** you have a Kotlin Android app using Retrofit/OkHttp and want a small shared network layer.
+- **Not for:** non-Android JVM apps or a complete networking architecture with paging/caching.
+
+## Shortest demo
+
+```kotlin
+TokenManager.init(this)
+RetrofitKit.init(context = this, baseUrl = "https://api.example.com/")
+val api = RetrofitKit.create(ApiService::class.java)
+```
+
+See [Quick start](#quick-start) for `tokenProvider`, 401 handling, and error decoding.
+
 ---
 
 ## Features
@@ -25,7 +42,7 @@ MIT License. Copyright (c) 2024 fallen-leaves089.
 
 ## Dependency coordinates
 
-### Option 1: JitPack (available after tagging the repository)
+### Option 1: JitPack (published as 1.0.0)
 
 Add the JitPack repository to `dependencyResolutionManagement` in `settings.gradle.kts`:
 
@@ -37,17 +54,17 @@ dependencyResolutionManagement {
 }
 ```
 
-Add the dependency in the module-level `build.gradle.kts` (the version matches the Git tag):
+Add the dependency in the module-level `build.gradle.kts`:
 
 ```kotlin
 implementation("com.github.fallen-leaves089:android-retrofit-kit:1.0.0")
 ```
 
-> The first JitPack build runs remotely and usually takes 1-2 minutes.
+> The `1.0.0` release is already built by JitPack. The first fetch may still take a moment.
 
-### Option 2: local module (recommended before publishing)
+### Option 2: local module (for unreleased changes)
 
-This library has not been published to Maven Central yet. Clone it and include it as a local module:
+This library has not been published to Maven Central yet. Use the local module when you need unreleased changes:
 
 ```gradle
 // settings.gradle.kts
@@ -250,11 +267,11 @@ Covers `PriceTypeAdapter`, WebSocket URL conversion, authorization header inject
 
 ## Releasing
 
-JitPack builds a release automatically from a Git tag.
+JitPack builds a release automatically from a Git tag. Use the `v` prefix for the tag; the dependency coordinate above remains `1.0.0`.
 
 ```bash
-git tag 1.0.0
-git push origin 1.0.0
+git tag v1.0.0
+git push origin v1.0.0
 ```
 
 Then use:
@@ -263,10 +280,10 @@ Then use:
 https://jitpack.io/#fallen-leaves089/android-retrofit-kit/1.0.0
 ```
 
-Maven Central publishing requires OSSRH credentials, signed artifacts, and source/javadoc jars.
+Publishing to Maven Central requires repository credentials, signed artifacts, and source/javadoc jars.
 
 ---
 
 ## GitHub About
 
-`Android Retrofit toolkit | Encrypted token storage | BigDecimal precision protection | Dynamic URLs`
+`Android Retrofit toolkit | Bearer token injection | Encrypted token storage | BigDecimal precision protection | Dynamic URLs`
