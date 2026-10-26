@@ -7,6 +7,23 @@ Android Retrofit 工具包 | 加密 Token | 价格精度保护 | 动态 URL
 
 MIT License. Copyright (c) 2024 fallen-leaves089.
 
+## 30 秒看懂
+
+- **解决什么**：把 Retrofit/OkHttp 项目里重复的 Bearer Token、401 处理、加密存储和金额精度逻辑收在一起。
+- **你能得到**：`RetrofitKit`、`TokenManager`、`PriceTypeAdapter`、401 拦截器、Cookie 处理和可插拔错误解码器。
+- **适合**：使用 Retrofit/OkHttp 的 Kotlin Android 应用，需要一层轻量共享网络层。
+- **不适合**：非 Android 的 JVM 应用，或需要完整分页/缓存方案的大型网络架构。
+
+## 最短演示
+
+```kotlin
+TokenManager.init(this)
+RetrofitKit.init(context = this, baseUrl = "https://api.example.com/")
+val api = RetrofitKit.create(ApiService::class.java)
+```
+
+`tokenProvider`、401 处理和错误解码见[快速开始](#快速开始)。
+
 ---
 
 ## 功能
@@ -23,7 +40,7 @@ MIT License. Copyright (c) 2024 fallen-leaves089.
 
 ## 依赖坐标
 
-### 方式一：JitPack（仓库打 tag 后可用）
+### 方式一：JitPack（已发布 1.0.0）
 
 在 `settings.gradle.kts` 的 `dependencyResolutionManagement` 中添加 JitPack 仓库：
 
@@ -35,17 +52,17 @@ dependencyResolutionManagement {
 }
 ```
 
-在模块的 `build.gradle.kts` 中添加依赖（版本号对应 Git tag）：
+在模块的 `build.gradle.kts` 中添加依赖：
 
 ```kotlin
 implementation("com.github.fallen-leaves089:android-retrofit-kit:1.0.0")
 ```
 
-> 首次使用 JitPack 时会自动远程构建，通常需要 1-2 分钟。
+> `1.0.0` 版本已经由 JitPack 构建；首次拉取可能仍需一点时间。
 
-### 方式二：本地 module 引入（发布前推荐）
+### 方式二：本地 module 引入（用于未发布改动）
 
-本库尚未发布到 Maven Central，可 clone 后作为本地 module 引入：
+本库尚未发布到 Maven Central；需要未发布改动时再使用本地 module：
 
 ```gradle
 // settings.gradle.kts
@@ -248,11 +265,11 @@ android-retrofit-kit
 
 ## 发布
 
-JitPack 会根据 Git tag 自动构建发布。
+JitPack 会根据 Git tag 自动构建发布。Git tag 使用 `v1.0.0`，上面的依赖坐标仍使用 `1.0.0`。
 
 ```bash
-git tag 1.0.0
-git push origin 1.0.0
+git tag v1.0.0
+git push origin v1.0.0
 ```
 
 随后可使用：
@@ -261,10 +278,10 @@ git push origin 1.0.0
 https://jitpack.io/#fallen-leaves089/android-retrofit-kit/1.0.0
 ```
 
-发布到 Maven Central 需要 OSSRH 凭据、签名制品以及 source/javadoc jar。
+发布到 Maven Central 需要仓库凭据、签名制品以及 source/javadoc jar。
 
 ---
 
 ## GitHub About 建议
 
-`Android Retrofit 工具包 | 加密 Token | 价格精度保护 | 动态 URL`
+`Android Retrofit 工具包 | Bearer Token 注入 | 加密 Token | 价格精度保护 | 动态 URL`

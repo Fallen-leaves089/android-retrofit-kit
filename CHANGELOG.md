@@ -19,6 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Extracted authorization and 401 interceptors into `RetrofitKitInterceptors.kt` for testability
 - Blank tokens no longer produce an `Authorization: Bearer   ` header
+- README adds a 30-second overview and shortest demo
+- JitPack is documented as the primary install path for the tagged `1.0.0` release; the local module is for unreleased changes
+- Release tags are documented as `v1.0.0`; the JitPack coordinate remains `1.0.0`
 
 ## [1.0.0] - 2024
 
