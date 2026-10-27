@@ -44,11 +44,12 @@ object TokenManager {
         if (prefs != null) return
         synchronized(this) {
             if (prefs != null) return
-            val masterKey = MasterKey.Builder(context)
+            val appContext = context.applicationContext ?: context
+            val masterKey = MasterKey.Builder(appContext)
                 .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
                 .build()
             prefs = EncryptedSharedPreferences.create(
-                context,
+                appContext,
                 PREFS_NAME,
                 masterKey,
                 EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,

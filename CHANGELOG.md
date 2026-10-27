@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-10-27
+
+### Fixed
+
+- `TokenManager` now keeps the application context instead of a possibly short-lived caller context.
+- `RetrofitKit.init`/`reinitialize` are synchronized and the Retrofit reference is volatile for safe cross-thread publication.
+- `SimpleCookieJar` is thread-safe, merges updates instead of replacing the whole host entry, and honors expiry, path, domain, and `Secure`.
+- `getWebSocketUrl` validates the base URL, preserves port and base path, and moves a query string into the URL query component.
+
 ## [1.1.0] - 2026-10-27
 
 ### Security
