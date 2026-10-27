@@ -35,14 +35,23 @@ See [Quick start](#quick-start) for `tokenProvider`, 401 handling, and error dec
 - **BigDecimal precision protection**: `PriceTypeAdapter` prevents Gson from parsing monetary fields as `double` and losing precision.
 - **Encrypted token storage**: `TokenManager` uses AndroidX EncryptedSharedPreferences and delegates key management to the Android Keystore.
 - **Customizable error messages**: the `NetworkErrorDecoder` interface lets you provide your own error message handling.
-- **Automatic cookie management**: includes `SimpleCookieJar`.
-- **Logging interceptor**: optional OkHttp logging output.
+- **Cookie handling**: includes an in-memory, per-host `SimpleCookieJar`; cookies are not persisted across restarts.
+- **Logging interceptor**: optional OkHttp logging output with `Authorization`, `Cookie`, and `Set-Cookie` headers redacted.
+
+---
+
+## Scope and limits
+
+- `SimpleCookieJar` is in-memory and does not evaluate expiry, path, domain, or `Secure` attributes.
+- `TokenManager` uses AndroidX Security Crypto, which is deprecated upstream; plan a Keystore/DataStore migration.
+- `PriceTypeAdapter` writes `BigDecimal` values as strings rounded to 2 decimal places. Use a separate adapter for non-currency decimals.
+- Logging still includes URLs and request/response bodies; enable it only in debug builds.
 
 ---
 
 ## Dependency coordinates
 
-### Option 1: JitPack (published as 1.0.0)
+### Option 1: JitPack (published as 1.1.0)
 
 Add the JitPack repository to `dependencyResolutionManagement` in `settings.gradle.kts`:
 
@@ -57,10 +66,10 @@ dependencyResolutionManagement {
 Add the dependency in the module-level `build.gradle.kts`:
 
 ```kotlin
-implementation("com.github.fallen-leaves089:android-retrofit-kit:1.0.0")
+    implementation("com.github.fallen-leaves089:android-retrofit-kit:1.1.0")
 ```
 
-> The `1.0.0` release is already built by JitPack. The first fetch may still take a moment.
+> The `1.1.0` release includes the logging redaction and dependency updates. The older `1.0.0` tag predates them. The first JitPack fetch may still take a moment.
 
 ### Option 2: local module (for unreleased changes)
 
@@ -267,17 +276,17 @@ Covers `PriceTypeAdapter`, WebSocket URL conversion, authorization header inject
 
 ## Releasing
 
-JitPack builds a release automatically from a Git tag. Use the `v` prefix for the tag; the dependency coordinate above remains `1.0.0`.
+JitPack builds a release automatically from a Git tag. Use the `v` prefix for the tag; the dependency coordinate above remains `1.1.0`.
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git tag v1.1.0
+git push origin v1.1.0
 ```
 
 Then use:
 
 ```text
-https://jitpack.io/#fallen-leaves089/android-retrofit-kit/1.0.0
+https://jitpack.io/#fallen-leaves089/android-retrofit-kit/1.1.0
 ```
 
 Publishing to Maven Central requires repository credentials, signed artifacts, and source/javadoc jars.
