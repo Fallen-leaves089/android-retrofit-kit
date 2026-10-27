@@ -3,6 +3,7 @@ package io.github.fallenleaves089.retrofitkit
 import android.content.Context
 import com.google.gson.GsonBuilder
 import okhttp3.*
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -17,7 +18,7 @@ import java.util.concurrent.TimeUnit
  * - 全局 401 检测 + onTokenExpired 回调
  * - 可自定义的错误消息（NetworkErrorDecoder）
  * - Gson 默认 BigDecimal 精度保护（PriceTypeAdapter）
- * - Cookie 自动持久化（SimpleCookieJar）
+ * - Cookie 自动管理（SimpleCookieJar，仅内存）
  * - 可配置超时 + 日志拦截器
  *
  * ## 初始化示例：
@@ -37,8 +38,8 @@ import java.util.concurrent.TimeUnit
  */
 object RetrofitKit {
 
+    @Volatile
     private var retrofit: Retrofit? = null
-    private var tokenProvider: (() -> String?)? = null
     private var onTokenExpired: ((Context) -> Unit)? = null
     private var errorDecoder: NetworkErrorDecoder? = null
 
@@ -54,6 +55,7 @@ object RetrofitKit {
      * @param readTimeout    读取超时（秒），默认 15
      * @param enableLogging  是否启用 OkHttp 日志拦截器（建议仅 Debug 开启）
      */
+    @Synchronized
     fun init(
         context: Context,
         baseUrl: String,
@@ -64,7 +66,6 @@ object RetrofitKit {
         readTimeout: Long = 15,
         enableLogging: Boolean = false,
     ) {
-        this.tokenProvider = tokenProvider
         this.onTokenExpired = onTokenExpired
         this.errorDecoder = errorDecoder
 
@@ -118,6 +119,7 @@ object RetrofitKit {
     /**
      * 重新初始化 RetrofitKit（动态切换 baseUrl 等参数时使用）。
      */
+    @Synchronized
     fun reinitialize(
         context: Context,
         baseUrl: String,
@@ -158,31 +160,57 @@ object RetrofitKit {
      * @return 完整的 WebSocket URL
      */
     fun getWebSocketUrl(baseUrl: String, path: String): String {
-        val isHttps = baseUrl.startsWith("https")
-        val host = baseUrl.removePrefix("https://").removePrefix("http://").trimEnd('/')
-        val protocol = if (isHttps) "wss" else "ws"
-        val normalizedPath = if (path.startsWith("/")) path else "/$path"
-        return "$protocol://$host$normalizedPath"
+        val httpUrl = baseUrl.toHttpUrlOrNull()
+            ?: throw IllegalArgumentException("Invalid baseUrl: $baseUrl")
+        val queryIndex = path.indexOf('?')
+        val pathOnly = if (queryIndex >= 0) path.substring(0, queryIndex) else path
+        val query = if (queryIndex >= 0) path.substring(queryIndex + 1) else null
+        val basePath = httpUrl.encodedPath.trimEnd('/')
+        val normalizedPath = if (pathOnly.startsWith("/")) pathOnly else "/$pathOnly"
+        val target = httpUrl.newBuilder()
+            .encodedPath(basePath + normalizedPath)
+            .query(query)
+            .fragment(null)
+            .build()
+            .toString()
+        return if (httpUrl.isHttps) {
+            "wss" + target.removePrefix("https")
+        } else {
+            "ws" + target.removePrefix("http")
+        }
     }
 
     // ── 内部工具 ──
 
     /**
-     * In-memory cookie jar keyed by host.
+     * In-memory, thread-safe cookie jar.
      *
-     * Cookies are not persisted across process restarts, and this implementation does not
-     * evaluate expiry, path, domain, or Secure attributes. Use a persistent cookie store if
-     * the application depends on those semantics.
+     * Cookies are not persisted across process restarts. Expiry, path, domain, and Secure
+     * attributes are evaluated while the process is alive.
      */
-    private class SimpleCookieJar : CookieJar {
-        private val cookieStore = mutableMapOf<String, MutableList<Cookie>>()
+    internal class SimpleCookieJar : CookieJar {
+        private val cookies = mutableListOf<Cookie>()
 
         override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
-            cookieStore[url.host] = cookies.toMutableList()
+            if (cookies.isEmpty()) return
+            synchronized(this) {
+                for (cookie in cookies) {
+                    this.cookies.removeAll {
+                        it.name == cookie.name && it.domain == cookie.domain && it.path == cookie.path
+                    }
+                    if (cookie.expiresAt > System.currentTimeMillis()) {
+                        this.cookies.add(cookie)
+                    }
+                }
+            }
         }
 
         override fun loadForRequest(url: HttpUrl): List<Cookie> {
-            return cookieStore[url.host] ?: emptyList()
+            synchronized(this) {
+                val now = System.currentTimeMillis()
+                cookies.removeAll { it.expiresAt <= now }
+                return cookies.filter { it.matches(url) }
+            }
         }
     }
 }

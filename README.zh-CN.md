@@ -33,14 +33,14 @@ val api = RetrofitKit.create(ApiService::class.java)
 - **BigDecimal 精度保护**：`PriceTypeAdapter` 防止 Gson 将金额字段解析为 double 导致精度丢失
 - **加密 Token 存储**：`TokenManager` 基于 AndroidX EncryptedSharedPreferences，密钥托管到 Android Keystore
 - **可自定义错误消息**：`NetworkErrorDecoder` 接口，用户实现自定义错误提示
-- **Cookie 处理**：内置按 host 分组的 `SimpleCookieJar`，仅保存在内存中，不会跨进程持久化
+- **Cookie 处理**：内置线程安全的 `SimpleCookieJar`，会处理过期时间、path、domain 和 `Secure`，但仅保存在内存中，不会跨进程持久化
 - **日志拦截器**：可开关的 OkHttp 日志输出，并对 `Authorization`、`Cookie`、`Set-Cookie` 请求头脱敏
 
 ---
 
 ## 边界与限制
 
-- `SimpleCookieJar` 仅保存在内存中，不处理过期时间、path、domain 或 `Secure` 属性。
+- `SimpleCookieJar` 仅保存在内存中；进程存活期间会处理过期时间、path、domain 和 `Secure` 属性，但不会跨进程持久化。
 - `TokenManager` 使用 AndroidX Security Crypto，该库上游已弃用；建议规划迁移到 Keystore/DataStore。
 - `PriceTypeAdapter` 会以字符串输出 `BigDecimal`，并四舍五入到 2 位小数；非金额字段请使用单独的适配器。
 - 日志仍会包含 URL 和请求/响应体；只在 debug 构建中开启。
@@ -49,7 +49,7 @@ val api = RetrofitKit.create(ApiService::class.java)
 
 ## 依赖坐标
 
-### 方式一：JitPack（已发布 1.1.0）
+### 方式一：JitPack（已发布 1.1.1）
 
 在 `settings.gradle.kts` 的 `dependencyResolutionManagement` 中添加 JitPack 仓库：
 
@@ -64,10 +64,10 @@ dependencyResolutionManagement {
 在模块的 `build.gradle.kts` 中添加依赖：
 
 ```kotlin
-    implementation("com.github.fallen-leaves089:android-retrofit-kit:1.1.0")
+    implementation("com.github.fallen-leaves089:android-retrofit-kit:1.1.1")
 ```
 
-> `1.1.0` 版本包含日志脱敏和依赖升级；旧的 `1.0.0` tag 不包含这些改动。首次拉取可能仍需一点时间。
+> `1.1.1` 版本包含日志脱敏、依赖升级、线程安全初始化和修正后的内存 CookieJar；旧的 `1.0.0` tag 不包含这些改动。首次拉取可能仍需一点时间。
 
 ### 方式二：本地 module 引入（用于未发布改动）
 
@@ -239,10 +239,11 @@ Gson 的 `TypeAdapter<BigDecimal>`，自动注册到 `RetrofitKit` 内部。确�
 
 | 库 | 版本 |
 |----|------|
-| Retrofit | 2.9.0 |
-| OkHttp | 4.12.0 |
+| Retrofit | 2.11.0 |
+| OkHttp | 4.12.1 |
 | Gson | 2.14.0 |
 | AndroidX Security | 1.1.0 |
+| AndroidX Core KTX | 1.12.0 |
 | minSdk | 24 |
 | targetSdk | 34 |
 | compileSdk | 34 |
@@ -274,17 +275,17 @@ android-retrofit-kit
 
 ## 发布
 
-JitPack 会根据 Git tag 自动构建发布。Git tag 使用 `v1.1.0`，上面的依赖坐标仍使用 `1.1.0`。
+JitPack 会根据 Git tag 自动构建发布。Git tag 使用 `v1.1.1`，上面的依赖坐标仍使用 `1.1.1`。
 
 ```bash
-git tag v1.1.0
-git push origin v1.1.0
+git tag v1.1.1
+git push origin v1.1.1
 ```
 
 随后可使用：
 
 ```text
-https://jitpack.io/#fallen-leaves089/android-retrofit-kit/1.1.0
+https://jitpack.io/#fallen-leaves089/android-retrofit-kit/1.1.1
 ```
 
 发布到 Maven Central 需要仓库凭据、签名制品以及 source/javadoc jar。
