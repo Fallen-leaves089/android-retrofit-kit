@@ -83,6 +83,9 @@ object RetrofitKit {
         if (enableLogging) {
             val loggingInterceptor = HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
+                redactHeader("Authorization")
+                redactHeader("Cookie")
+                redactHeader("Set-Cookie")
             }
             okHttpBuilder.addInterceptor(loggingInterceptor)
         }
@@ -164,6 +167,13 @@ object RetrofitKit {
 
     // ── 内部工具 ──
 
+    /**
+     * In-memory cookie jar keyed by host.
+     *
+     * Cookies are not persisted across process restarts, and this implementation does not
+     * evaluate expiry, path, domain, or Secure attributes. Use a persistent cookie store if
+     * the application depends on those semantics.
+     */
     private class SimpleCookieJar : CookieJar {
         private val cookieStore = mutableMapOf<String, MutableList<Cookie>>()
 
