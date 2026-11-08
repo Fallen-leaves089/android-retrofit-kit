@@ -239,14 +239,18 @@ Gson 的 `TypeAdapter<BigDecimal>`，自动注册到 `RetrofitKit` 内部。确�
 
 | 库 | 版本 |
 |----|------|
-| Retrofit | 2.11.0 |
-| OkHttp | 4.12.1 |
+| Retrofit | 3.0.0 |
+| OkHttp | 5.4.0 |
 | Gson | 2.14.0 |
 | AndroidX Security | 1.1.0 |
-| AndroidX Core KTX | 1.12.0 |
+| AndroidX Core KTX | 1.19.0 |
+| Android Gradle Plugin | 9.3.1 |
+| Gradle | 9.7.0 |
+| Kotlin | 由 AGP 内置，无需单独插件 |
 | minSdk | 24 |
-| targetSdk | 34 |
-| compileSdk | 34 |
+| compileSdk | 37 |
+
+作为库，本项目不设置 `targetSdk`，由接入的 App 决定。
 
 ---
 

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Upgraded the Android toolchain to Gradle 9.7.0 and AGP 9.3.1 with built-in Kotlin.
+- Updated Retrofit to 3.0.0, OkHttp to 5.4.0, AndroidX Core KTX to 1.19.0, and CI to `actions/setup-java@v6`.
+
 ## [1.1.1] - 2026-10-27
 
 ### Fixed
