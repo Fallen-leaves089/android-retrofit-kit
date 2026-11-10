@@ -241,14 +241,18 @@ A Gson `TypeAdapter<BigDecimal>` that is automatically registered inside `Retrof
 
 | Library | Version |
 |---------|---------|
-| Retrofit | 2.11.0 |
-| OkHttp | 4.12.1 |
+| Retrofit | 3.0.0 |
+| OkHttp | 5.4.0 |
 | Gson | 2.14.0 |
 | AndroidX Security | 1.1.0 |
-| AndroidX Core KTX | 1.12.0 |
+| AndroidX Core KTX | 1.19.0 |
+| Android Gradle Plugin | 9.3.1 |
+| Gradle | 9.7.0 |
+| Kotlin | built into AGP (no separate plugin) |
 | minSdk | 24 |
-| targetSdk | 34 |
-| compileSdk | 34 |
+| compileSdk | 37 |
+
+As a library, `targetSdk` is not set here; the consuming app decides it.
 
 ---
 
