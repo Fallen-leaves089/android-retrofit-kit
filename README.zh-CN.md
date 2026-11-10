@@ -28,7 +28,7 @@ val api = RetrofitKit.create(ApiService::class.java)
 
 ## 功能
 
-- **Token 自动注入**：每次请求自动拼接 `Authorization: Bearer <token>` 头
+- **按来源注入 Token**：只有当请求目标与 `baseUrl` 的协议、主机、端口完全一致，或属于显式允许的来源时，才拼接 `Authorization: Bearer <token>` 头
 - **401 全局拦截**：收到 401 时自动触发 `onTokenExpired` 回调
 - **BigDecimal 精度保护**：`PriceTypeAdapter` 防止 Gson 将金额字段解析为 double 导致精度丢失
 - **加密 Token 存储**：`TokenManager` 基于 AndroidX EncryptedSharedPreferences，密钥托管到 Android Keystore
@@ -44,12 +44,13 @@ val api = RetrofitKit.create(ApiService::class.java)
 - `TokenManager` 使用 AndroidX Security Crypto，该库上游已弃用；建议规划迁移到 Keystore/DataStore。
 - `PriceTypeAdapter` 会以字符串输出 `BigDecimal`，并四舍五入到 2 位小数；非金额字段请使用单独的适配器。
 - 日志仍会包含 URL 和请求/响应体；只在 debug 构建中开启。
+- Token 注入受来源限制：跨主机、跨端口或跨协议的请求不会通过该拦截器获得 Bearer Token。只有确实需要共享 Token 的可信服务才应加入 `allowedTokenOrigins`。
 
 ---
 
 ## 依赖坐标
 
-### 方式一：JitPack（已发布 1.1.1）
+### 方式一：JitPack（已发布 1.1.2）
 
 在 `settings.gradle.kts` 的 `dependencyResolutionManagement` 中添加 JitPack 仓库：
 
@@ -64,10 +65,10 @@ dependencyResolutionManagement {
 在模块的 `build.gradle.kts` 中添加依赖：
 
 ```kotlin
-    implementation("com.github.fallen-leaves089:android-retrofit-kit:1.1.1")
+    implementation("com.github.fallen-leaves089:android-retrofit-kit:1.1.2")
 ```
 
-> `1.1.1` 版本包含日志脱敏、依赖升级、线程安全初始化和修正后的内存 CookieJar；旧的 `1.0.0` tag 不包含这些改动。首次拉取可能仍需一点时间。
+> `1.1.2` 版本新增按来源注入 Bearer Token，并包含日志脱敏、依赖升级、线程安全初始化和修正后的内存 CookieJar；旧的 `1.0.0` tag 不包含这些改动。首次拉取可能仍需一点时间。
 
 ### 方式二：本地 module 引入（用于未发布改动）
 
@@ -103,6 +104,8 @@ class MyApplication : Application() {
             context = this,
             baseUrl = "https://api.example.com/",
             tokenProvider = { TokenManager.getToken() },
+            // 可选：只加入确实需要接收同一 Token 的可信来源。
+            // allowedTokenOrigins = setOf("https://uploads.example.com"),
             onTokenExpired = { context ->
                 // 跳转登录页
                 TokenManager.clearToken()
@@ -183,6 +186,7 @@ TokenManager.saveUserId(userId)
 |------|------|--------|------|
 | `baseUrl` | String | 必填 | API 根地址 |
 | `tokenProvider` | `(() -> String?)?` | null | Token 提供者回调 |
+| `allowedTokenOrigins` | `Set<String>` | 空集合 | 额外允许接收 Bearer Token 的精确来源；`baseUrl` 来源始终包含在内 |
 | `onTokenExpired` | `((Context) -> Unit)?` | null | 401 时的回调 |
 | `errorDecoder` | `NetworkErrorDecoder?` | null | 错误消息解码器 |
 | `connectTimeout` | Long | 15 | 连接超时（秒） |
@@ -273,23 +277,23 @@ android-retrofit-kit
 ./gradlew --no-daemon :retrofitkit:testDebugUnitTest
 ```
 
-覆盖 `PriceTypeAdapter`、WebSocket URL 转换、鉴权头注入、401 处理以及 `TokenManager` 持久化。
+覆盖 `PriceTypeAdapter`、WebSocket URL 转换、按来源注入 Token、401 处理以及 `TokenManager` 持久化。
 
 ---
 
 ## 发布
 
-JitPack 会根据 Git tag 自动构建发布。Git tag 使用 `v1.1.1`，上面的依赖坐标仍使用 `1.1.1`。
+JitPack 会根据 Git tag 自动构建发布。Git tag 使用 `v1.1.2`，上面的依赖坐标仍使用 `1.1.2`。
 
 ```bash
-git tag v1.1.1
-git push origin v1.1.1
+git tag v1.1.2
+git push origin v1.1.2
 ```
 
 随后可使用：
 
 ```text
-https://jitpack.io/#fallen-leaves089/android-retrofit-kit/1.1.1
+https://jitpack.io/#fallen-leaves089/android-retrofit-kit/1.1.2
 ```
 
 发布到 Maven Central 需要仓库凭据、签名制品以及 source/javadoc jar。
@@ -298,4 +302,4 @@ https://jitpack.io/#fallen-leaves089/android-retrofit-kit/1.1.1
 
 ## GitHub About 建议
 
-`Android Retrofit 工具包 | Bearer Token 注入 | 加密 Token | 价格精度保护 | 动态 URL`
+`Android Retrofit 工具包 | 按来源注入 Bearer Token | 加密 Token | 价格精度保护 | 动态 URL`

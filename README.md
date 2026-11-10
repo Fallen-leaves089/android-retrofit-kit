@@ -30,7 +30,7 @@ See [Quick start](#quick-start) for `tokenProvider`, 401 handling, and error dec
 
 ## Features
 
-- **Automatic token injection**: adds `Authorization: Bearer <token>` to every request.
+- **Origin-scoped token injection**: adds `Authorization: Bearer <token>` only when the request target exactly matches the `baseUrl` origin (scheme, host, and port), plus any explicitly trusted origins.
 - **Global 401 interception**: triggers the `onTokenExpired` callback when a 401 response is received.
 - **BigDecimal precision protection**: `PriceTypeAdapter` prevents Gson from parsing monetary fields as `double` and losing precision.
 - **Encrypted token storage**: `TokenManager` uses AndroidX EncryptedSharedPreferences and delegates key management to the Android Keystore.
@@ -46,12 +46,13 @@ See [Quick start](#quick-start) for `tokenProvider`, 401 handling, and error dec
 - `TokenManager` uses AndroidX Security Crypto, which is deprecated upstream; plan a Keystore/DataStore migration.
 - `PriceTypeAdapter` writes `BigDecimal` values as strings rounded to 2 decimal places. Use a separate adapter for non-currency decimals.
 - Logging still includes URLs and request/response bodies; enable it only in debug builds.
+- Token injection is origin-scoped. Requests to a different host, port, or scheme never receive the bearer token through this interceptor. Add `allowedTokenOrigins` only for trusted services that must share the token.
 
 ---
 
 ## Dependency coordinates
 
-### Option 1: JitPack (published as 1.1.1)
+### Option 1: JitPack (published as 1.1.2)
 
 Add the JitPack repository to `dependencyResolutionManagement` in `settings.gradle.kts`:
 
@@ -66,10 +67,10 @@ dependencyResolutionManagement {
 Add the dependency in the module-level `build.gradle.kts`:
 
 ```kotlin
-    implementation("com.github.fallen-leaves089:android-retrofit-kit:1.1.1")
+    implementation("com.github.fallen-leaves089:android-retrofit-kit:1.1.2")
 ```
 
-> The `1.1.1` release includes logging redaction, dependency updates, thread-safe initialization, and the corrected in-memory cookie jar. The older `1.0.0` tag predates them. The first JitPack fetch may still take a moment.
+> The `1.1.2` release adds origin-scoped bearer-token injection and includes logging redaction, dependency updates, thread-safe initialization, and the corrected in-memory cookie jar. The older `1.0.0` tag predates these changes. The first JitPack fetch may still take a moment.
 
 ### Option 2: local module (for unreleased changes)
 
@@ -105,6 +106,8 @@ class MyApplication : Application() {
             context = this,
             baseUrl = "https://api.example.com/",
             tokenProvider = { TokenManager.getToken() },
+            // Optional: only add origins that must receive the same token.
+            // allowedTokenOrigins = setOf("https://uploads.example.com"),
             onTokenExpired = { context ->
                 // Navigate to the login screen
                 TokenManager.clearToken()
@@ -185,6 +188,7 @@ TokenManager.saveUserId(userId)
 |-----------|------|---------|-------------|
 | `baseUrl` | String | required | API base URL |
 | `tokenProvider` | `(() -> String?)?` | null | Token provider callback |
+| `allowedTokenOrigins` | `Set<String>` | empty | Additional exact origins allowed to receive the bearer token; the `baseUrl` origin is always included |
 | `onTokenExpired` | `((Context) -> Unit)?` | null | Callback invoked on 401 |
 | `errorDecoder` | `NetworkErrorDecoder?` | null | Error message decoder |
 | `connectTimeout` | Long | 15 | Connection timeout in seconds |
@@ -275,23 +279,23 @@ android-retrofit-kit
 ./gradlew --no-daemon :retrofitkit:testDebugUnitTest
 ```
 
-Covers `PriceTypeAdapter`, WebSocket URL conversion, authorization header injection, 401 handling, and `TokenManager` persistence.
+Covers `PriceTypeAdapter`, WebSocket URL conversion, origin-scoped token injection, 401 handling, and `TokenManager` persistence.
 
 ---
 
 ## Releasing
 
-JitPack builds a release automatically from a Git tag. Use the `v` prefix for the tag; the dependency coordinate above remains `1.1.1`.
+JitPack builds a release automatically from a Git tag. Use the `v` prefix for the tag; the dependency coordinate above remains `1.1.2`.
 
 ```bash
-git tag v1.1.1
-git push origin v1.1.1
+git tag v1.1.2
+git push origin v1.1.2
 ```
 
 Then use:
 
 ```text
-https://jitpack.io/#fallen-leaves089/android-retrofit-kit/1.1.1
+https://jitpack.io/#fallen-leaves089/android-retrofit-kit/1.1.2
 ```
 
 Publishing to Maven Central requires repository credentials, signed artifacts, and source/javadoc jars.
@@ -300,4 +304,4 @@ Publishing to Maven Central requires repository credentials, signed artifacts, a
 
 ## GitHub About
 
-`Android Retrofit toolkit | Bearer token injection | Encrypted token storage | BigDecimal precision protection | Dynamic URLs`
+`Android Retrofit toolkit | Origin-scoped bearer tokens | Encrypted token storage | BigDecimal precision protection | Dynamic URLs`

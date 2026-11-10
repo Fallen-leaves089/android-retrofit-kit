@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-11-10
+
+### Security
+
+- Bearer tokens are now injected only for the exact `baseUrl` origin (scheme, host, and port), plus any origins explicitly supplied through `allowedTokenOrigins`.
+- `allowedTokenOrigins` accepts HTTP/HTTPS origins only; paths, queries, fragments, and user information are rejected.
+- Requests that already set `Authorization` are left unchanged, and the token provider is not called for untrusted origins.
+
 ### Changed
 
 - Upgraded the Android toolchain to Gradle 9.7.0 and AGP 9.3.1 with built-in Kotlin.
