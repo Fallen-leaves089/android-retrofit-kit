@@ -54,6 +54,8 @@ object RetrofitKit {
      * @param connectTimeout 连接超时（秒），默认 15
      * @param readTimeout    读取超时（秒），默认 15
      * @param enableLogging  是否启用 OkHttp 日志拦截器（建议仅 Debug 开启）
+     * @param allowedTokenOrigins 额外允许接收 Bearer Token 的精确来源（scheme + host + port），
+     *                            baseUrl 来源始终允许；默认不追加其他来源
      */
     @Synchronized
     fun init(
@@ -65,7 +67,9 @@ object RetrofitKit {
         connectTimeout: Long = 15,
         readTimeout: Long = 15,
         enableLogging: Boolean = false,
+        allowedTokenOrigins: Set<String> = emptySet(),
     ) {
+        val tokenOrigins = resolveTokenOrigins(baseUrl, allowedTokenOrigins)
         this.onTokenExpired = onTokenExpired
         this.errorDecoder = errorDecoder
 
@@ -75,7 +79,7 @@ object RetrofitKit {
             .cookieJar(SimpleCookieJar())
 
         // 鉴权拦截器：自动注入 Authorization 头
-        okHttpBuilder.addInterceptor(AuthHeaderInterceptor(tokenProvider))
+        okHttpBuilder.addInterceptor(AuthHeaderInterceptor(tokenProvider, tokenOrigins))
 
         // 响应拦截器：检测 401
         okHttpBuilder.addInterceptor(UnauthorizedInterceptor(context, onTokenExpired))
@@ -129,10 +133,11 @@ object RetrofitKit {
         connectTimeout: Long = 15,
         readTimeout: Long = 15,
         enableLogging: Boolean = false,
+        allowedTokenOrigins: Set<String> = emptySet(),
     ) {
         retrofit = null
         init(context, baseUrl, tokenProvider, onTokenExpired, errorDecoder,
-            connectTimeout, readTimeout, enableLogging)
+            connectTimeout, readTimeout, enableLogging, allowedTokenOrigins)
     }
 
     /**
