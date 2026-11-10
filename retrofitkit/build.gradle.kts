@@ -1,5 +1,8 @@
+import org.gradle.api.publish.maven.MavenPublication
+
 plugins {
     id("com.android.library")
+    `maven-publish`
 }
 
 description = "Android Retrofit toolkit: encrypted token storage, BigDecimal precision protection, and dynamic URLs"
@@ -23,6 +26,12 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
     }
 
 }
@@ -53,4 +62,34 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     testImplementation("com.squareup.okhttp3:mockwebserver:5.4.0")
     testImplementation("org.mockito:mockito-core:5.10.0")
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("release") {
+                from(components["release"])
+                groupId = project.group.toString()
+                artifactId = "android-retrofit-kit"
+                version = project.version.toString()
+
+                pom {
+                    name.set("android-retrofit-kit")
+                    description.set("Android Retrofit toolkit with encrypted token storage, origin-safe auth injection, and BigDecimal precision protection")
+                    url.set("https://github.com/Fallen-leaves089/android-retrofit-kit")
+                    licenses {
+                        license {
+                            name.set("MIT License")
+                            url.set("https://opensource.org/licenses/MIT")
+                        }
+                    }
+                    scm {
+                        url.set("https://github.com/Fallen-leaves089/android-retrofit-kit")
+                        connection.set("scm:git:https://github.com/Fallen-leaves089/android-retrofit-kit.git")
+                        developerConnection.set("scm:git:ssh://git@github.com/Fallen-leaves089/android-retrofit-kit.git")
+                    }
+                }
+            }
+        }
+    }
 }

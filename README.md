@@ -52,7 +52,7 @@ See [Quick start](#quick-start) for `tokenProvider`, 401 handling, and error dec
 
 ## Dependency coordinates
 
-### Option 1: JitPack (published as 1.1.2)
+### Option 1: JitPack (verified build: 1.1.3)
 
 Add the JitPack repository to `dependencyResolutionManagement` in `settings.gradle.kts`:
 
@@ -67,10 +67,10 @@ dependencyResolutionManagement {
 Add the dependency in the module-level `build.gradle.kts`:
 
 ```kotlin
-    implementation("com.github.fallen-leaves089:android-retrofit-kit:1.1.2")
+    implementation("com.github.Fallen-leaves089:android-retrofit-kit:1.1.3")
 ```
 
-> The `1.1.2` release adds origin-scoped bearer-token injection and includes logging redaction, dependency updates, thread-safe initialization, and the corrected in-memory cookie jar. The older `1.0.0` tag predates these changes. The first JitPack fetch may still take a moment.
+> `1.1.3` adds origin-scoped bearer-token injection and the Maven publication setup required by JitPack. It also includes logging redaction, dependency updates, thread-safe initialization, and the corrected in-memory cookie jar. The `v1.1.2` tag could not be consumed from JitPack because that build lacked a publish task; use `1.1.3` or later.
 
 ### Option 2: local module (for unreleased changes)
 
@@ -285,17 +285,17 @@ Covers `PriceTypeAdapter`, WebSocket URL conversion, origin-scoped token injecti
 
 ## Releasing
 
-JitPack builds a release automatically from a Git tag. Use the `v` prefix for the tag; the dependency coordinate above remains `1.1.2`.
+JitPack builds a release automatically from a Git tag. Use the `v` prefix for the tag; the dependency coordinate above remains `1.1.3`.
 
 ```bash
-git tag v1.1.2
-git push origin v1.1.2
+git tag v1.1.3
+git push origin v1.1.3
 ```
 
 Then use:
 
 ```text
-https://jitpack.io/#fallen-leaves089/android-retrofit-kit/1.1.2
+https://jitpack.io/#Fallen-leaves089/android-retrofit-kit/1.1.3
 ```
 
 Publishing to Maven Central requires repository credentials, signed artifacts, and source/javadoc jars.

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.3] - 2026-11-10
+
+### Fixed
+
+- Added Android `maven-publish` configuration and a root `publishToMavenLocal` task so JitPack can publish the AAR, sources JAR, POM, and Gradle metadata.
+- The `v1.1.2` tag could not be consumed from JitPack because that build had no publish task; use `1.1.3` or later.
+
 ## [1.1.2] - 2026-11-10
 
 ### Security

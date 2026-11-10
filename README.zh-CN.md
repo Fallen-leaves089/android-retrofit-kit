@@ -50,7 +50,7 @@ val api = RetrofitKit.create(ApiService::class.java)
 
 ## 依赖坐标
 
-### 方式一：JitPack（已发布 1.1.2）
+### 方式一：JitPack（已构建验证：1.1.3）
 
 在 `settings.gradle.kts` 的 `dependencyResolutionManagement` 中添加 JitPack 仓库：
 
@@ -65,10 +65,10 @@ dependencyResolutionManagement {
 在模块的 `build.gradle.kts` 中添加依赖：
 
 ```kotlin
-    implementation("com.github.fallen-leaves089:android-retrofit-kit:1.1.2")
+    implementation("com.github.Fallen-leaves089:android-retrofit-kit:1.1.3")
 ```
 
-> `1.1.2` 版本新增按来源注入 Bearer Token，并包含日志脱敏、依赖升级、线程安全初始化和修正后的内存 CookieJar；旧的 `1.0.0` tag 不包含这些改动。首次拉取可能仍需一点时间。
+> `1.1.3` 新增按来源注入 Bearer Token，并补齐 JitPack 所需的 Maven 发布配置；同时包含日志脱敏、依赖升级、线程安全初始化和修正后的内存 CookieJar。`v1.1.2` tag 因缺少发布任务无法从 JitPack 获取，请使用 `1.1.3` 或更新版本。
 
 ### 方式二：本地 module 引入（用于未发布改动）
 
@@ -283,17 +283,17 @@ android-retrofit-kit
 
 ## 发布
 
-JitPack 会根据 Git tag 自动构建发布。Git tag 使用 `v1.1.2`，上面的依赖坐标仍使用 `1.1.2`。
+JitPack 会根据 Git tag 自动构建发布。Git tag 使用 `v1.1.3`，上面的依赖坐标仍使用 `1.1.3`。
 
 ```bash
-git tag v1.1.2
-git push origin v1.1.2
+git tag v1.1.3
+git push origin v1.1.3
 ```
 
 随后可使用：
 
 ```text
-https://jitpack.io/#fallen-leaves089/android-retrofit-kit/1.1.2
+https://jitpack.io/#Fallen-leaves089/android-retrofit-kit/1.1.3
 ```
 
 发布到 Maven Central 需要仓库凭据、签名制品以及 source/javadoc jar。
