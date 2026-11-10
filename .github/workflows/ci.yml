@@ -27,3 +27,6 @@ jobs:
 
       - name: Build
         run: ./gradlew --no-daemon assembleDebug test
+
+      - name: Verify Maven publication
+        run: ./gradlew --no-daemon publishToMavenLocal -Pgroup=com.github.Fallen-leaves089 -Pversion=ci
