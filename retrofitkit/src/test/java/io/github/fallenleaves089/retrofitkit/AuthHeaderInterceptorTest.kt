@@ -30,7 +30,13 @@ class AuthHeaderInterceptorTest {
     fun injectsBearerTokenWhenTokenExists() {
         server.enqueue(MockResponse().setResponseCode(200))
         val client = OkHttpClient.Builder()
-            .addInterceptor(AuthHeaderInterceptor({ "test-token" }, setOf(TokenOrigin.fromUrl(server.url("/")))))
+            .addInterceptor(
+                AuthHeaderInterceptor(
+                    { "test-token" },
+                    setOf(TokenOrigin.fromUrl(server.url("/"))),
+                    allowInsecureTokenOrigins = true,
+                )
+            )
             .build()
 
         client.newCall(Request.Builder().url(server.url("/")).build()).execute().use {
@@ -39,10 +45,35 @@ class AuthHeaderInterceptorTest {
     }
 
     @Test
+    fun skipsCleartextRequestsByDefaultWithoutReadingTheProvider() {
+        server.enqueue(MockResponse().setResponseCode(200))
+        var tokenCalls = 0
+        val client = OkHttpClient.Builder()
+            .addInterceptor(
+                AuthHeaderInterceptor(
+                    { tokenCalls++; "test-token" },
+                    setOf(TokenOrigin.fromUrl(server.url("/"))),
+                )
+            )
+            .build()
+
+        client.newCall(Request.Builder().url(server.url("/")).build()).execute().use {
+            assertNull(it.request.header("Authorization"))
+        }
+        assertEquals(0, tokenCalls)
+    }
+
+    @Test
     fun skipsHeaderWhenTokenIsNull() {
         server.enqueue(MockResponse().setResponseCode(200))
         val client = OkHttpClient.Builder()
-            .addInterceptor(AuthHeaderInterceptor({ null }, setOf(TokenOrigin.fromUrl(server.url("/")))))
+            .addInterceptor(
+                AuthHeaderInterceptor(
+                    { null },
+                    setOf(TokenOrigin.fromUrl(server.url("/"))),
+                    allowInsecureTokenOrigins = true,
+                )
+            )
             .build()
 
         client.newCall(Request.Builder().url(server.url("/")).build()).execute().use {
@@ -54,7 +85,13 @@ class AuthHeaderInterceptorTest {
     fun skipsHeaderWhenTokenIsBlank() {
         server.enqueue(MockResponse().setResponseCode(200))
         val client = OkHttpClient.Builder()
-            .addInterceptor(AuthHeaderInterceptor({ "  " }, setOf(TokenOrigin.fromUrl(server.url("/")))))
+            .addInterceptor(
+                AuthHeaderInterceptor(
+                    { "  " },
+                    setOf(TokenOrigin.fromUrl(server.url("/"))),
+                    allowInsecureTokenOrigins = true,
+                )
+            )
             .build()
 
         client.newCall(Request.Builder().url(server.url("/")).build()).execute().use {
@@ -73,7 +110,13 @@ class AuthHeaderInterceptorTest {
                 TokenOrigin.fromUrl(extraServer.url("/")),
             )
             val client = OkHttpClient.Builder()
-                .addInterceptor(AuthHeaderInterceptor({ "test-token" }, origins))
+                .addInterceptor(
+                    AuthHeaderInterceptor(
+                        { "test-token" },
+                        origins,
+                        allowInsecureTokenOrigins = true,
+                    )
+                )
                 .build()
 
             client.newCall(Request.Builder().url(extraServer.url("/")).build()).execute().use {
@@ -90,7 +133,13 @@ class AuthHeaderInterceptorTest {
         var tokenCalls = 0
         val origins = setOf(TokenOrigin("http", "api.example.com", server.port))
         val client = OkHttpClient.Builder()
-            .addInterceptor(AuthHeaderInterceptor({ tokenCalls++; "test-token" }, origins))
+            .addInterceptor(
+                AuthHeaderInterceptor(
+                    { tokenCalls++; "test-token" },
+                    origins,
+                    allowInsecureTokenOrigins = true,
+                )
+            )
             .build()
 
         client.newCall(Request.Builder().url(server.url("/")).build()).execute().use {
@@ -104,7 +153,13 @@ class AuthHeaderInterceptorTest {
         server.enqueue(MockResponse().setResponseCode(200))
         val origins = setOf(TokenOrigin("http", server.url("/").host, server.port + 1))
         val client = OkHttpClient.Builder()
-            .addInterceptor(AuthHeaderInterceptor({ "test-token" }, origins))
+            .addInterceptor(
+                AuthHeaderInterceptor(
+                    { "test-token" },
+                    origins,
+                    allowInsecureTokenOrigins = true,
+                )
+            )
             .build()
 
         client.newCall(Request.Builder().url(server.url("/")).build()).execute().use {
@@ -117,7 +172,13 @@ class AuthHeaderInterceptorTest {
         server.enqueue(MockResponse().setResponseCode(200))
         val origins = setOf(TokenOrigin("https", server.url("/").host, server.port))
         val client = OkHttpClient.Builder()
-            .addInterceptor(AuthHeaderInterceptor({ "test-token" }, origins))
+            .addInterceptor(
+                AuthHeaderInterceptor(
+                    { "test-token" },
+                    origins,
+                    allowInsecureTokenOrigins = true,
+                )
+            )
             .build()
 
         client.newCall(Request.Builder().url(server.url("/")).build()).execute().use {
@@ -134,6 +195,7 @@ class AuthHeaderInterceptorTest {
                 AuthHeaderInterceptor(
                     { tokenCalls++; "test-token" },
                     setOf(TokenOrigin.fromUrl(server.url("/"))),
+                    allowInsecureTokenOrigins = true,
                 )
             )
             .build()
@@ -171,7 +233,18 @@ class AuthHeaderInterceptorTest {
     }
 
     @Test
-    fun resolveTokenOriginsAlwaysIncludesTheBaseOrigin() {
+    fun tokenOriginRejectsInsecureHttpByDefaultAndAllowsExplicitOptIn() {
+        assertThrows(IllegalArgumentException::class.java) {
+            TokenOrigin.parse("http://api.example.com")
+        }
+        assertEquals(
+            TokenOrigin("http", "api.example.com", 80),
+            TokenOrigin.parse("http://api.example.com", allowInsecureHttp = true),
+        )
+    }
+
+    @Test
+    fun resolveTokenOriginsIncludesTheSecureBaseOrigin() {
         val origins = resolveTokenOrigins(
             "https://api.example.com/v1/",
             setOf("https://uploads.example.com:8443"),
@@ -183,6 +256,32 @@ class AuthHeaderInterceptorTest {
                 TokenOrigin("https", "uploads.example.com", 8443),
             ),
             origins,
+        )
+    }
+
+    @Test
+    fun resolveTokenOriginsOmitsCleartextOriginsByDefault() {
+        assertEquals(
+            emptySet<TokenOrigin>(),
+            resolveTokenOrigins("http://api.example.com/v1/", emptySet()),
+        )
+        assertThrows(IllegalArgumentException::class.java) {
+            resolveTokenOrigins(
+                "https://api.example.com/v1/",
+                setOf("http://uploads.example.com"),
+            )
+        }
+    }
+
+    @Test
+    fun resolveTokenOriginsAllowsCleartextOnlyWithExplicitOptIn() {
+        assertEquals(
+            setOf(TokenOrigin("http", "api.example.com", 80)),
+            resolveTokenOrigins(
+                "http://api.example.com/v1/",
+                emptySet(),
+                allowInsecureTokenOrigins = true,
+            ),
         )
     }
 }

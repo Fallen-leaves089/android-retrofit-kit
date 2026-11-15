@@ -55,7 +55,9 @@ object RetrofitKit {
      * @param readTimeout    读取超时（秒），默认 15
      * @param enableLogging  是否启用 OkHttp 日志拦截器（建议仅 Debug 开启）
      * @param allowedTokenOrigins 额外允许接收 Bearer Token 的精确来源（scheme + host + port），
-     *                            baseUrl 来源始终允许；默认不追加其他来源
+     *                            baseUrl 来源在 HTTPS 下自动允许；默认不追加其他来源
+     * @param allowInsecureTokenOrigins 是否允许把 Bearer Token 发往 HTTP 来源；
+     *                                  仅限本地调试，启用后 Token 会以明文传输
      */
     @Synchronized
     fun init(
@@ -68,8 +70,20 @@ object RetrofitKit {
         readTimeout: Long = 15,
         enableLogging: Boolean = false,
         allowedTokenOrigins: Set<String> = emptySet(),
+        allowInsecureTokenOrigins: Boolean,
     ) {
-        val tokenOrigins = resolveTokenOrigins(baseUrl, allowedTokenOrigins)
+        val baseHttpUrl = baseUrl.toHttpUrlOrNull()
+            ?: throw IllegalArgumentException("Invalid baseUrl: $baseUrl")
+        if (tokenProvider != null && !allowInsecureTokenOrigins) {
+            require(baseHttpUrl.isHttps) {
+                "tokenProvider requires an HTTPS baseUrl; enable allowInsecureTokenOrigins only for local debugging"
+            }
+        }
+        val tokenOrigins = resolveTokenOrigins(
+            baseUrl,
+            allowedTokenOrigins,
+            allowInsecureTokenOrigins,
+        )
         this.onTokenExpired = onTokenExpired
         this.errorDecoder = errorDecoder
 
@@ -79,7 +93,9 @@ object RetrofitKit {
             .cookieJar(SimpleCookieJar())
 
         // 鉴权拦截器：自动注入 Authorization 头
-        okHttpBuilder.addInterceptor(AuthHeaderInterceptor(tokenProvider, tokenOrigins))
+        okHttpBuilder.addInterceptor(
+            AuthHeaderInterceptor(tokenProvider, tokenOrigins, allowInsecureTokenOrigins)
+        )
 
         // 响应拦截器：检测 401
         okHttpBuilder.addInterceptor(UnauthorizedInterceptor(context, onTokenExpired))
@@ -104,6 +120,37 @@ object RetrofitKit {
             .client(okHttpBuilder.build())
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
+    }
+
+    /**
+     * Backwards-compatible entry point for callers compiled against the
+     * previous nine-parameter API. Use the ten-parameter overload to opt in
+     * to insecure HTTP token injection for local debugging.
+     */
+    @Synchronized
+    fun init(
+        context: Context,
+        baseUrl: String,
+        tokenProvider: (() -> String?)? = null,
+        onTokenExpired: ((Context) -> Unit)? = null,
+        errorDecoder: NetworkErrorDecoder? = null,
+        connectTimeout: Long = 15,
+        readTimeout: Long = 15,
+        enableLogging: Boolean = false,
+        allowedTokenOrigins: Set<String> = emptySet(),
+    ) {
+        init(
+            context,
+            baseUrl,
+            tokenProvider,
+            onTokenExpired,
+            errorDecoder,
+            connectTimeout,
+            readTimeout,
+            enableLogging,
+            allowedTokenOrigins,
+            false,
+        )
     }
 
     /**
@@ -134,10 +181,42 @@ object RetrofitKit {
         readTimeout: Long = 15,
         enableLogging: Boolean = false,
         allowedTokenOrigins: Set<String> = emptySet(),
+        allowInsecureTokenOrigins: Boolean,
     ) {
         retrofit = null
         init(context, baseUrl, tokenProvider, onTokenExpired, errorDecoder,
-            connectTimeout, readTimeout, enableLogging, allowedTokenOrigins)
+            connectTimeout, readTimeout, enableLogging, allowedTokenOrigins,
+            allowInsecureTokenOrigins)
+    }
+
+    /**
+     * Backwards-compatible entry point for callers compiled against the
+     * previous nine-parameter API.
+     */
+    @Synchronized
+    fun reinitialize(
+        context: Context,
+        baseUrl: String,
+        tokenProvider: (() -> String?)? = null,
+        onTokenExpired: ((Context) -> Unit)? = null,
+        errorDecoder: NetworkErrorDecoder? = null,
+        connectTimeout: Long = 15,
+        readTimeout: Long = 15,
+        enableLogging: Boolean = false,
+        allowedTokenOrigins: Set<String> = emptySet(),
+    ) {
+        reinitialize(
+            context,
+            baseUrl,
+            tokenProvider,
+            onTokenExpired,
+            errorDecoder,
+            connectTimeout,
+            readTimeout,
+            enableLogging,
+            allowedTokenOrigins,
+            false,
+        )
     }
 
     /**
