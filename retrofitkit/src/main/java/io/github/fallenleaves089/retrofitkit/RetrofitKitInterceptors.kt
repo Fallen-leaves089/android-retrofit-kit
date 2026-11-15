@@ -20,11 +20,11 @@ internal data class TokenOrigin(
     companion object {
         fun fromUrl(url: HttpUrl): TokenOrigin = TokenOrigin(url.scheme, url.host, url.port)
 
-        fun parse(raw: String): TokenOrigin {
+        fun parse(raw: String, allowInsecureHttp: Boolean = false): TokenOrigin {
             val url = raw.trim().toHttpUrlOrNull()
                 ?: throw IllegalArgumentException("allowedTokenOrigins contains an invalid URL: $raw")
-            require(url.scheme == "http" || url.scheme == "https") {
-                "allowedTokenOrigins must use http or https: $raw"
+            require(url.scheme == "https" || (allowInsecureHttp && url.scheme == "http")) {
+                "allowedTokenOrigins must use https; enable allowInsecureTokenOrigins only for local debugging: $raw"
             }
             require(url.username.isEmpty() && url.password.isEmpty()) {
                 "allowedTokenOrigins must not contain user information: $raw"
@@ -40,11 +40,17 @@ internal data class TokenOrigin(
 internal fun resolveTokenOrigins(
     baseUrl: String,
     allowedTokenOrigins: Set<String>,
+    allowInsecureTokenOrigins: Boolean = false,
 ): Set<TokenOrigin> {
     val base = baseUrl.toHttpUrlOrNull()
         ?: throw IllegalArgumentException("Invalid baseUrl: $baseUrl")
-    val origins = linkedSetOf(TokenOrigin.fromUrl(base))
-    allowedTokenOrigins.forEach { origins.add(TokenOrigin.parse(it)) }
+    val origins = linkedSetOf<TokenOrigin>()
+    if (base.isHttps || allowInsecureTokenOrigins) {
+        origins.add(TokenOrigin.fromUrl(base))
+    }
+    allowedTokenOrigins.forEach {
+        origins.add(TokenOrigin.parse(it, allowInsecureTokenOrigins))
+    }
     return origins
 }
 
@@ -52,15 +58,20 @@ internal fun resolveTokenOrigins(
  * 鉴权拦截器：在请求发出前自动注入 Authorization 头。
  *
  * Token 为 null 或空白时保持原请求不变，避免生成无效的 Bearer 头。
+ * 默认仅向 HTTPS 目标注入 Token；HTTP 明文目标不会读取 Token。
  */
 internal class AuthHeaderInterceptor(
     private val tokenProvider: (() -> String?)?,
     private val allowedTokenOrigins: Set<TokenOrigin>,
+    private val allowInsecureTokenOrigins: Boolean = false,
 ) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val originalRequest = chain.request()
         if (originalRequest.header("Authorization") != null) {
+            return chain.proceed(originalRequest)
+        }
+        if (!allowInsecureTokenOrigins && !originalRequest.url.isHttps) {
             return chain.proceed(originalRequest)
         }
         if (TokenOrigin.fromUrl(originalRequest.url) !in allowedTokenOrigins) {

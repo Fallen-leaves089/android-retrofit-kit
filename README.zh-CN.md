@@ -28,7 +28,7 @@ val api = RetrofitKit.create(ApiService::class.java)
 
 ## 功能
 
-- **按来源注入 Token**：只有当请求目标与 `baseUrl` 的协议、主机、端口完全一致，或属于显式允许的来源时，才拼接 `Authorization: Bearer <token>` 头
+- **按来源注入 Token，默认仅限 HTTPS**：只有当请求目标是 HTTPS，且与 `baseUrl` 的协议、主机、端口完全一致，或属于显式允许的来源时，才拼接 `Authorization: Bearer <token>` 头
 - **401 全局拦截**：收到 401 时自动触发 `onTokenExpired` 回调
 - **BigDecimal 精度保护**：`PriceTypeAdapter` 防止 Gson 将金额字段解析为 double 导致精度丢失
 - **加密 Token 存储**：`TokenManager` 基于 AndroidX EncryptedSharedPreferences，密钥托管到 Android Keystore
@@ -44,7 +44,7 @@ val api = RetrofitKit.create(ApiService::class.java)
 - `TokenManager` 使用 AndroidX Security Crypto，该库上游已弃用；建议规划迁移到 Keystore/DataStore。
 - `PriceTypeAdapter` 会以字符串输出 `BigDecimal`，并四舍五入到 2 位小数；非金额字段请使用单独的适配器。
 - 日志仍会包含 URL 和请求/响应体；只在 debug 构建中开启。
-- Token 注入受来源限制：跨主机、跨端口或跨协议的请求不会通过该拦截器获得 Bearer Token。只有确实需要共享 Token 的可信服务才应加入 `allowedTokenOrigins`。
+- Token 注入受来源和传输安全限制：跨主机、跨端口或跨协议的请求不会获得 Bearer Token，明文 HTTP 请求也不会读取 Token 或注入认证头。`allowInsecureTokenOrigins = true` 只用于本地调试，启用后 Token 会明文传输，禁止在发布构建中使用。只有确实需要共享 Token 的可信 HTTPS 服务才应加入 `allowedTokenOrigins`。
 
 ---
 
@@ -186,7 +186,8 @@ TokenManager.saveUserId(userId)
 |------|------|--------|------|
 | `baseUrl` | String | 必填 | API 根地址 |
 | `tokenProvider` | `(() -> String?)?` | null | Token 提供者回调 |
-| `allowedTokenOrigins` | `Set<String>` | 空集合 | 额外允许接收 Bearer Token 的精确来源；`baseUrl` 来源始终包含在内 |
+| `allowedTokenOrigins` | `Set<String>` | 空集合 | 额外允许接收 Bearer Token 的精确 HTTPS 来源；只有显式开启不安全来源时才会包含 HTTP `baseUrl` |
+| `allowInsecureTokenOrigins` | Boolean | false | 是否允许通过 HTTP 注入 Bearer Token；仅限本地调试，会明文传输凭据，发布构建必须保持关闭 |
 | `onTokenExpired` | `((Context) -> Unit)?` | null | 401 时的回调 |
 | `errorDecoder` | `NetworkErrorDecoder?` | null | 错误消息解码器 |
 | `connectTimeout` | Long | 15 | 连接超时（秒） |

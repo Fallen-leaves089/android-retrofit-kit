@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- Bearer tokens are now injected only over HTTPS by default. Cleartext HTTP requests do not invoke the token provider or receive an `Authorization` header.
+- `allowedTokenOrigins` rejects HTTP entries, and a token provider configured with an HTTP `baseUrl` fails initialization unless insecure token origins are explicitly enabled.
+
+### Changed
+
+- Added `allowInsecureTokenOrigins`, defaulting to `false`; it exists only for local HTTP debugging and sends the bearer token in cleartext.
+- Retained the previous nine-parameter `init` and `reinitialize` overloads for binary compatibility; the ten-parameter overload exposes the insecure opt-in.
+
 ## [1.1.3] - 2026-11-10
 
 ### Fixed

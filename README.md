@@ -30,7 +30,7 @@ See [Quick start](#quick-start) for `tokenProvider`, 401 handling, and error dec
 
 ## Features
 
-- **Origin-scoped token injection**: adds `Authorization: Bearer <token>` only when the request target exactly matches the `baseUrl` origin (scheme, host, and port), plus any explicitly trusted origins.
+- **Origin-scoped, HTTPS-only token injection**: adds `Authorization: Bearer <token>` only when the request target exactly matches the `baseUrl` origin (scheme, host, and port), plus any explicitly trusted origins. Cleartext HTTP targets never receive the token unless local debugging explicitly opts in.
 - **Global 401 interception**: triggers the `onTokenExpired` callback when a 401 response is received.
 - **BigDecimal precision protection**: `PriceTypeAdapter` prevents Gson from parsing monetary fields as `double` and losing precision.
 - **Encrypted token storage**: `TokenManager` uses AndroidX EncryptedSharedPreferences and delegates key management to the Android Keystore.
@@ -46,7 +46,7 @@ See [Quick start](#quick-start) for `tokenProvider`, 401 handling, and error dec
 - `TokenManager` uses AndroidX Security Crypto, which is deprecated upstream; plan a Keystore/DataStore migration.
 - `PriceTypeAdapter` writes `BigDecimal` values as strings rounded to 2 decimal places. Use a separate adapter for non-currency decimals.
 - Logging still includes URLs and request/response bodies; enable it only in debug builds.
-- Token injection is origin-scoped. Requests to a different host, port, or scheme never receive the bearer token through this interceptor. Add `allowedTokenOrigins` only for trusted services that must share the token.
+- Token injection is origin-scoped and HTTPS-only by default. A cleartext HTTP request does not invoke the token provider or receive the bearer token. `allowInsecureTokenOrigins = true` exists only for local debugging and transmits the token in cleartext; never enable it in release builds. Add `allowedTokenOrigins` only for trusted HTTPS services that must share the token.
 
 ---
 
@@ -188,7 +188,8 @@ TokenManager.saveUserId(userId)
 |-----------|------|---------|-------------|
 | `baseUrl` | String | required | API base URL |
 | `tokenProvider` | `(() -> String?)?` | null | Token provider callback |
-| `allowedTokenOrigins` | `Set<String>` | empty | Additional exact origins allowed to receive the bearer token; the `baseUrl` origin is always included |
+| `allowedTokenOrigins` | `Set<String>` | empty | Additional exact HTTPS origins allowed to receive the bearer token; an HTTP `baseUrl` is included only when insecure token origins are explicitly enabled |
+| `allowInsecureTokenOrigins` | Boolean | false | Allow bearer-token injection over HTTP for local debugging only; sends credentials in cleartext and must stay disabled in release builds |
 | `onTokenExpired` | `((Context) -> Unit)?` | null | Callback invoked on 401 |
 | `errorDecoder` | `NetworkErrorDecoder?` | null | Error message decoder |
 | `connectTimeout` | Long | 15 | Connection timeout in seconds |
