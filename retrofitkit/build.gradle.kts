@@ -60,7 +60,7 @@ dependencies {
 
     // Local unit tests
     testImplementation("junit:junit:4.13.2")
-    testImplementation("com.squareup.okhttp3:mockwebserver:5.4.0")
+    testImplementation("com.squareup.okhttp3:mockwebserver:5.5.1")
     testImplementation("org.mockito:mockito-core:5.10.0")
 }
 
